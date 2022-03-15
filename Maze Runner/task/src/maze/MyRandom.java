@@ -15,8 +15,4 @@ public class MyRandom {
 
         return random.nextInt((x - 2)) + 1;
     }
-
-    static int randomDirection() {
-        return random.nextInt(3);
-    }
 }

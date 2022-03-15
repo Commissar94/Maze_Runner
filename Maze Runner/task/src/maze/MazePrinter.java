@@ -14,11 +14,11 @@ public class MazePrinter {
         this.allNodes = rows * cols;
         setWallsEverywhereExceptPathNodes();
         setEnterAndExit();
+        safeEnterAndExit();
         setWallsForOddInputs();
         calculatePathNodes();
         setBorderWalls();
         printPath();
-        safeEnterAndExit();
     }
 
     private final int rows; //высота лабиринта
@@ -28,7 +28,6 @@ public class MazePrinter {
     private final int exit;
     private int pathNodes;
     private final int allNodes;
-    private int visitedNodes = 0;
     private int emptyDestinations = 0;
 
     //TODO
@@ -56,16 +55,13 @@ public class MazePrinter {
                         if (currentNode.getUp().getUp() != null){
                             if (nodesToGo.get(randomDestination).getNumber() == currentNode.getUp().getUp().getNumber() && !currentNode.getUp().getUp().isVisited()) {
                                 currentNode.setVisited(true);
-
                                 currentNode.getUp().setWall(false);
-                                System.out.println("going up");
                             }
                         }
                         if (currentNode.getRight().getRight() != null) {
                             if (nodesToGo.get(randomDestination).getNumber() == currentNode.getRight().getRight().getNumber() && !currentNode.getRight().getRight().isVisited()) {
                                 currentNode.setVisited(true);
                                 currentNode.getRight().setWall(false);
-                                System.out.println("going right");
                             }
                         }
 
@@ -73,14 +69,12 @@ public class MazePrinter {
                             if (nodesToGo.get(randomDestination).getNumber() == currentNode.getDown().getDown().getNumber() && !currentNode.getDown().getDown().isVisited()) {
                                 currentNode.setVisited(true);
                                 currentNode.getDown().setWall(false);
-                                System.out.println("going down");
                             }
                         }
                         if (currentNode.getLeft().getLeft() != null) {
                             if (nodesToGo.get(randomDestination).getNumber() == currentNode.getLeft().getLeft().getNumber() && !currentNode.getLeft().getLeft().isVisited()) {
                                 currentNode.setVisited(true);
                                 currentNode.getLeft().setWall(false);
-                                System.out.println("going left");
                             }
                         }
                     } else {
@@ -88,8 +82,6 @@ public class MazePrinter {
                     }
                 }
             }
-            System.out.println("visited : " + findVisited());
-            System.out.println("allNodes : " + allNodes);
         }
 
     }
@@ -185,15 +177,14 @@ public class MazePrinter {
     }
 
     private int findVisited() {
-        this.visitedNodes = 0;
+        int visitedNodes = 0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (mazeNodes[i][j].isVisited()) {
-                    this.visitedNodes++;
+                    visitedNodes++;
                 }
             }
         }
-        return this.visitedNodes;
+        return visitedNodes;
     }
-
 }
