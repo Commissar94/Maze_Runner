@@ -9,7 +9,6 @@ public class MyRandom {
 
         if (x % 2 == 0) {
             int number = random.nextInt((x - 2)) + 1;
-            System.out.println(number);
             return number % 2 == 0 ? number + 1 : number;
         }
 

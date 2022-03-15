@@ -16,24 +16,17 @@ public class MazePrinter {
         setEnterAndExit();
         safeEnterAndExit();
         setWallsForOddInputs();
-        calculatePathNodes();
         setBorderWalls();
         printPath();
     }
 
-    private final int rows; //высота лабиринта
-    private final int cols; //длина лабиринта
+    private final int rows;
+    private final int cols;
     private final MazeNode[][] mazeNodes;
     private final int enter;
     private final int exit;
-    private int pathNodes;
     private final int allNodes;
     private int emptyDestinations = 0;
-
-    //TODO
-    //благодаря методу availableNodesToGo мы знаем куда можно пойти
-    //теперь нужно выбирать путь рандомно, и отмечать посещенные ячейки изменяя visited у ноды
-    //путь по нодам складываем в стэк, по нему возвращаемся когда вариантов не будет
 
     private void printPath() {
 
@@ -83,7 +76,6 @@ public class MazePrinter {
                 }
             }
         }
-
     }
 
     private void setWallsEverywhereExceptPathNodes() {
@@ -94,17 +86,6 @@ public class MazePrinter {
                 }
             }
         }
-
-    }
-
-    private void calculatePathNodes() {
-        //this.pathNodes = ((this.x - 2) / 2 + 1) * ((this.y - 2) / 2 + 1);
-        for (int i = 1; i < rows - 1; i++) {
-            for (int j = 1; j < cols - 1; j++) {
-                this.pathNodes++;
-            }
-        }
-        this.pathNodes = this.pathNodes / 2;
     }
 
     private void setBorderWalls() {
@@ -170,10 +151,7 @@ public class MazePrinter {
 
     private void safeEnterAndExit() {
         mazeNodes[enter][0].getRight().setWall(false);
-        //mazeNodes[enter][0].getRight().setVisited(true);
-
         mazeNodes[exit][mazeNodes[1].length - 1].getLeft().setWall(false);
-        //  mazeNodes[exit][mazeNodes[1].length - 1].getLeft().setVisited(true);
     }
 
     private int findVisited() {
