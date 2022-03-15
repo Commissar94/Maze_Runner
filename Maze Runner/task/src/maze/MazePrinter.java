@@ -1,51 +1,199 @@
 package maze;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class MazePrinter {
 
-    public MazePrinter(int x, int y) {
-        this.maze = new int[x][y];
-        Random random = new Random();
-        this.enter = random.nextInt((x - 1 - 1)) + 1;
-        this.exit = random.nextInt((x - 1 - 1)) + 1;
-        printWalls();
+    public MazePrinter(MazeNode[][] mazeNodes, int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.mazeNodes = mazeNodes;
+        this.enter = MyRandom.exitOrEnter(rows);
+        this.exit = MyRandom.exitOrEnter(rows);
+        this.allNodes = rows * cols;
+        setWallsEverywhereExceptPathNodes();
+        setEnterAndExit();
+        setWallsForOddInputs();
+        calculatePathNodes();
+        setBorderWalls();
+        printPath();
+        safeEnterAndExit();
     }
 
-    private String passage = "  ";
-    private String wall = "\u2588\u2588";
-    private int[][] maze;
-    private int enter;
-    private int exit;
+    private final int rows; //высота лабиринта
+    private final int cols; //длина лабиринта
+    private final MazeNode[][] mazeNodes;
+    private final int enter;
+    private final int exit;
+    private int pathNodes;
+    private final int allNodes;
+    private int visitedNodes = 0;
+    private int emptyDestinations = 0;
+
+    //TODO
+    //благодаря методу availableNodesToGo мы знаем куда можно пойти
+    //теперь нужно выбирать путь рандомно, и отмечать посещенные ячейки изменяя visited у ноды
+    //путь по нодам складываем в стэк, по нему возвращаемся когда вариантов не будет
+
+    private void printPath() {
 
 
-    public void printWalls() {
+        Random random = new Random();
+
+
+        while (findVisited() + emptyDestinations < allNodes) {
+              for (int i = 1; i < rows - 1; i += 2) {  //i+=2
+               for (int j = 1; j < cols - 1; j += 2) {
+                    MazeNode currentNode = mazeNodes[i][j];
+                    List<MazeNode> nodesToGo = currentNode.availableNodesToGo();
+
+                    int randomDestination;
+
+                    if (!nodesToGo.isEmpty()) {
+                        randomDestination = random.nextInt(nodesToGo.size());
+
+                        if (currentNode.getUp().getUp() != null){
+                            if (nodesToGo.get(randomDestination).getNumber() == currentNode.getUp().getUp().getNumber() && !currentNode.getUp().getUp().isVisited()) {
+                                currentNode.setVisited(true);
+
+                                currentNode.getUp().setWall(false);
+                                System.out.println("going up");
+                            }
+                        }
+                        if (currentNode.getRight().getRight() != null) {
+                            if (nodesToGo.get(randomDestination).getNumber() == currentNode.getRight().getRight().getNumber() && !currentNode.getRight().getRight().isVisited()) {
+                                currentNode.setVisited(true);
+                                currentNode.getRight().setWall(false);
+                                System.out.println("going right");
+                            }
+                        }
+
+                        if (currentNode.getDown().getDown() != null) {
+                            if (nodesToGo.get(randomDestination).getNumber() == currentNode.getDown().getDown().getNumber() && !currentNode.getDown().getDown().isVisited()) {
+                                currentNode.setVisited(true);
+                                currentNode.getDown().setWall(false);
+                                System.out.println("going down");
+                            }
+                        }
+                        if (currentNode.getLeft().getLeft() != null) {
+                            if (nodesToGo.get(randomDestination).getNumber() == currentNode.getLeft().getLeft().getNumber() && !currentNode.getLeft().getLeft().isVisited()) {
+                                currentNode.setVisited(true);
+                                currentNode.getLeft().setWall(false);
+                                System.out.println("going left");
+                            }
+                        }
+                    } else {
+                        this.emptyDestinations++;
+                    }
+                }
+            }
+            System.out.println("visited : " + findVisited());
+            System.out.println("allNodes : " + allNodes);
+        }
+
+    }
+
+    private void setWallsEverywhereExceptPathNodes() {
+        for (int i = 1; i < rows; i += 2) {
+            for (int j = 1; j < cols; j += 2) {
+                if (!mazeNodes[i][j].isVisited()) {
+                    mazeNodes[i][j].setWall(false);
+                }
+            }
+        }
+
+    }
+
+    private void calculatePathNodes() {
+        //this.pathNodes = ((this.x - 2) / 2 + 1) * ((this.y - 2) / 2 + 1);
+        for (int i = 1; i < rows - 1; i++) {
+            for (int j = 1; j < cols - 1; j++) {
+                this.pathNodes++;
+            }
+        }
+        this.pathNodes = this.pathNodes / 2;
+    }
+
+    private void setBorderWalls() {
         //left wall
-        for (int i = 0; i < maze[0].length; i++) {
+        for (int i = 0; i < mazeNodes.length; i++) {
             if (i != enter) {
-                maze[i][0] = 1;
+                mazeNodes[i][0].setWall(true);
+                mazeNodes[i][0].setVisited(true);
             }
         }
         //right wall
-        for (int i = 0; i < maze[0].length; i++) {
+        for (int i = 0; i < mazeNodes.length; i++) {
             if (i != exit) {
-                maze[i][maze[1].length - 1] = 1;
+                mazeNodes[i][mazeNodes[1].length - 1].setWall(true);
+                mazeNodes[i][mazeNodes[1].length - 1].setVisited(true);
             }
 
         }
         //up wall
-        Arrays.fill(maze[0], 1);
+        for (int i = 0; i < mazeNodes[0].length; i++) {
+            mazeNodes[0][i].setWall(true);
+            mazeNodes[0][i].setVisited(true);
+        }
         //down wall
-        Arrays.fill(maze[9], 1);
+        for (int i = 0; i < mazeNodes[rows - 1].length; i++) {
+            mazeNodes[rows - 1][i].setWall(true);
+            mazeNodes[rows - 1][i].setVisited(true);
+        }
+    }
+
+    private void setEnterAndExit() {
+        mazeNodes[enter][0].setWall(false);
+        mazeNodes[enter][0].setVisited(true);
+        mazeNodes[exit][mazeNodes[1].length - 1].setWall(false);
+        mazeNodes[exit][mazeNodes[1].length - 1].setVisited(true);
+    }
+
+    private void setWallsForOddInputs() {
+        if (this.cols % 2 == 0) {
+            for (int i = 0; i < mazeNodes.length; i += 2) {
+                mazeNodes[i][mazeNodes[1].length - 2].setWall(false);
+            }
+        }
+        if (this.rows % 2 == 0) {
+            for (int i = 0; i < mazeNodes[rows - 1].length; i += 2) {
+                mazeNodes[rows - 2][i].setWall(false);
+            }
+        }
     }
 
     public void printMaze() {
-        for (int i = 0; i < maze[0].length; i++) {
-            for (int j = 0; j < maze[1].length; j++) {
-                System.out.print(maze[i][j] == 0 ? passage : wall);
+
+        String passage = "  ";
+        String wall = "\u2588\u2588";
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(!mazeNodes[i][j].getWall() ? passage : wall);
             }
             System.out.println();
         }
     }
+
+    private void safeEnterAndExit() {
+        mazeNodes[enter][0].getRight().setWall(false);
+        //mazeNodes[enter][0].getRight().setVisited(true);
+
+        mazeNodes[exit][mazeNodes[1].length - 1].getLeft().setWall(false);
+        //  mazeNodes[exit][mazeNodes[1].length - 1].getLeft().setVisited(true);
+    }
+
+    private int findVisited() {
+        this.visitedNodes = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (mazeNodes[i][j].isVisited()) {
+                    this.visitedNodes++;
+                }
+            }
+        }
+        return this.visitedNodes;
+    }
+
 }
